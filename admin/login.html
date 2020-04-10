@@ -58,6 +58,8 @@
   </div><!-- /.modal -->
 
 
+  <!-- 引入http.js文件 -->
+  <script src="./libs/http.js"></script>
   <script>
     //入口函数
     $(function () {
@@ -82,7 +84,8 @@
         //1.5 发送ajax请求,完成登录
         $.ajax({
           type: 'post',
-          url: 'http://localhost:8080/api/v1/admin/user/login',
+          // url: 'http://localhost:8080/api/v1/admin/user/login',
+          url:BigNew.user_login, //使用http.js里面报错的接口地址
           data: {
             username: username,
             password: password

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>文章列表</title>
+    <title>文章类别</title>
     <link rel="stylesheet" href="./libs/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/iconfont.css">
@@ -50,6 +50,43 @@
                 </tfoot>
             </table>
         </div>
+
+        <!-- 准备一个模板 -->
+        <!-- 补充:可以给模板引擎中遍历出来的项取一个别名 -->
+        <script id="category_temp" type="text/html">
+            {{each data v}}
+            <tr>
+                <td>{{v.name}}</td>
+                <td>{{v.slug}}</td>
+                <td class="text-center">
+                    <a href="javascript:void(0)" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
+                    <a href="javascript:void(0)" data-id="{{v.id}}" class="btn btn-danger btn-xs">删除</a>
+                </td>
+            </tr>
+            {{/each}}
+        </script>
+
+        <script src="./libs/http.js"></script>
+        <script>
+            //入口函数
+            $(function () {
+                //一:一进到这个文章类别页面,就要显示所有的文章类别
+                //1.1. 发送ajax请求,获取到所有的文章类别
+                $.ajax({
+                    type:'get',
+                    url:BigNew.category_list,
+                    success:function(backData){
+                        //console.log(backData);
+                        if(backData.code == 200){
+                            //1.2  通过模板引擎的方式,渲染到页面上. 
+                            var resHtml = template('category_temp',backData);
+                            $('tbody').html(resHtml);
+                        }
+                    }
+                });
+
+            })
+        </script>
     </div>
 
 </html>

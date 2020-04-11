@@ -93,7 +93,7 @@
             <td class="text-center">
                 <a href="javascript:void(0)" data-id="{{v.id}}" data-toggle="modal" data-target="#myModal"
                     class=" btn btn-info btn-xs">编辑</a>
-                <a href="javascript:void(0)" data-id="{{v.id}}" class="btn btn-danger btn-xs">删除</a>
+                <a href="javascript:void(0)" data-id="{{v.id}}" class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -137,8 +137,8 @@
                     //'点击编辑按钮弹出的
                     $('#myModalLabel').text('编辑分类');
                     $('#btnAddOrEdit').text('编辑').addClass('btn-success').removeClass('btn-primary');
-                
-                
+
+
                     //编辑的第一步: 
                     //把需要编辑的当前这一行的文章类别  名称和别名 显示在模态框中. 
                     $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
@@ -186,21 +186,21 @@
                     //alert('点的是编辑');
                     //编辑的第二步: 
                     //1.获取 要编辑的 文章类别 的名称和别名.
-                    var categoryName =  $('#recipient-name').val().trim();//文章分类 名称
+                    var categoryName = $('#recipient-name').val().trim(); //文章分类 名称
                     var categorySlug = $('#message-text').val().trim(); //文章分类 别名
                     var categoryId = $('#categoryId').val().trim(); //文章分类 id
                     //2.发送ajax请求完成编辑
                     $.ajax({
-                        type:'post',
-                        url:BigNew.category_edit,
-                        data:{
-                            id:categoryId,
-                            name:categoryName,
-                            slug:categorySlug
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: categoryId,
+                            name: categoryName,
+                            slug: categorySlug
                         },
-                        success:function(backData){
+                        success: function (backData) {
                             //console.log(backData);
-                            if(backData.code == 200){
+                            if (backData.code == 200) {
                                 alert('编辑成功!');
                                 //3.编辑成功后要重新加载数据
                                 getData();
@@ -212,6 +212,37 @@
 
                 }
             })
+
+
+            //四: 删除文章类别
+            //给删除按钮设置点击事件(删除按钮们是动态生成的,所以要委托注册)
+            $('tbody').on('click', '.btn-delete', function () {
+                var that = $(this); //把当前点击的这个删除按钮用that保存一下
+                if (confirm('你确定要删除吗?')) {
+                    //获取当前删除的这个文章类别的id
+                    var categoryId = $(this).attr('data-id');
+                    //发送ajax请求完成删除
+                    $.ajax({
+                        type:'post',
+                        url:BigNew.category_delete,
+                        data:{
+                            id:categoryId
+                        },
+                        success:function(backData){
+                            //console.log(backData);
+                            if(backData.code == 204){
+                                alert('删除成功!');
+                                //更新数据
+                                //第一种方法: 直接重新加载数据
+                                //getData();
+                                //第二种方式: 直接把这一行删掉
+                                that.parent().parent().remove();
+                            }
+                        }
+                    });
+                }
+            })
+
 
         })
     </script>

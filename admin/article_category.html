@@ -63,6 +63,8 @@
                 </div>
                 <div class="modal-body">
                     <form>
+                        <!-- 隐藏域: 是用来保存 编辑的文章类别的 id的 -->
+                        <input type="hidden" name="" id="categoryId">
                         <div class="form-group">
                             <label for="recipient-name" class="control-label">分类名称:</label>
                             <input type="text" class="form-control" id="recipient-name">
@@ -89,7 +91,7 @@
             <td>{{v.name}}</td>
             <td>{{v.slug}}</td>
             <td class="text-center">
-                <a href="javascript:void(0)" data-toggle="modal" data-target="#myModal"
+                <a href="javascript:void(0)" data-id="{{v.id}}" data-toggle="modal" data-target="#myModal"
                     class=" btn btn-info btn-xs">编辑</a>
                 <a href="javascript:void(0)" data-id="{{v.id}}" class="btn btn-danger btn-xs">删除</a>
             </td>
@@ -135,6 +137,13 @@
                     //'点击编辑按钮弹出的
                     $('#myModalLabel').text('编辑分类');
                     $('#btnAddOrEdit').text('编辑').addClass('btn-success').removeClass('btn-primary');
+                
+                
+                    //编辑的第一步: 
+                    //把需要编辑的当前这一行的文章类别  名称和别名 显示在模态框中. 
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text().trim());
+                    $('#categoryId').val($(e.relatedTarget).attr('data-id'));
                 }
             })
 
@@ -149,6 +158,7 @@
                     //获取用户输入的新增的 分类名称和分类别名. 
                     var categoryName = $('#recipient-name').val().trim(); //分类名称
                     var categorySlug = $('#message-text').val().trim(); //分类别名
+                    //非空判断.自己去做
                     //发送ajax请求,完成新增
                     $.ajax({
                         type: 'post',
@@ -174,6 +184,32 @@
                 } else {
                     //编辑
                     //alert('点的是编辑');
+                    //编辑的第二步: 
+                    //1.获取 要编辑的 文章类别 的名称和别名.
+                    var categoryName =  $('#recipient-name').val().trim();//文章分类 名称
+                    var categorySlug = $('#message-text').val().trim(); //文章分类 别名
+                    var categoryId = $('#categoryId').val().trim(); //文章分类 id
+                    //2.发送ajax请求完成编辑
+                    $.ajax({
+                        type:'post',
+                        url:BigNew.category_edit,
+                        data:{
+                            id:categoryId,
+                            name:categoryName,
+                            slug:categorySlug
+                        },
+                        success:function(backData){
+                            //console.log(backData);
+                            if(backData.code == 200){
+                                alert('编辑成功!');
+                                //3.编辑成功后要重新加载数据
+                                getData();
+                                // 隐藏模态框 
+                                $('#myModal').modal('hide')
+                            }
+                        }
+                    });
+
                 }
             })
 

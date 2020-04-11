@@ -76,7 +76,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" id="btnCancel" class="btn btn-default" data-dismiss="modal">取消</button>
                     <button type="button" id="btnAddOrEdit" class="btn btn-primary">Send message</button>
                 </div>
             </div>
@@ -241,6 +241,13 @@
                         }
                     });
                 }
+            })
+
+            //五: 给模态框中的 取消按钮设置一个点击事件. 
+            $('#btnCancel').on('click',function(){
+                //把模态框中的 form表单给清空.
+                //form表单有一个方法 reset()就可以把form表单中的数据还原成默认值;
+                $('#myModal form')[0].reset(); //注意: reset()方法是dom方法
             })
 
 

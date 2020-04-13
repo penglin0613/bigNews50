@@ -138,7 +138,7 @@
                                 type: 'get',
                                 url: BigNew.user_info, //使用的是http.js中的接口地址
                                 success: function (backData) {
-                                    console.log(backData);
+                                    //console.log(backData);
                                     if (backData.code == 200) {
                                         //1.2 个人信息显示在页面上. 
                                         parent.$('.user_info>span>i').text(backData.data.nickname);

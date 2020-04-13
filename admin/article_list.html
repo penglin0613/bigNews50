@@ -72,6 +72,38 @@
             </div>
         </div>
     </div>
+
+    <!-- 准备一个 文章类别 模板 -->
+    <script id="category_temp" type="text/html">
+        <option value="">所有分类</option>
+        {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+
+    <!-- 导入http.js文件 -->
+    <script src="./libs/http.js"></script>
+    <script>
+        //入口函数
+        $(function () {
+            //一:发送ajax请求,获取所有的文章类别,然后通过模板引擎的方式渲染到下拉菜单中. 
+            $.ajax({
+                type: 'get',
+                url: BigNew.category_list,
+                success: function (backData) {
+                    //console.log(backData);
+                    if (backData.code == 200) {
+                        //通过模板引擎 渲染到下拉菜单中
+                        var resHtml = template('category_temp',backData);
+                        $('#selCategory').html(resHtml);
+                    }
+                }
+            });
+
+
+
+        });
+    </script>
 </body>
 
 </html>

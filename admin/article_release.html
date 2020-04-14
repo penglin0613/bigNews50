@@ -14,6 +14,12 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 模板引擎 -->
     <script src="./libs/template-web.js"></script>
+    <!-- 日期插件jeDate需要引入的文件 -->
+    <link rel="stylesheet" href="./libs/jedate/css/jeDate-test.css">
+    <link rel="stylesheet" href="./libs/jedate/css/jedate.css">
+    <script src="./libs/jedate/js/jedate.js"></script>
+    <!-- wangEditor需要引入的文件 -->
+    <script src="./libs/wangEditor.min.js"></script>
 </head>
 
 <body>
@@ -25,14 +31,16 @@
             <form class="form-horizontal article_form" id="form">
                 <div class="form-group">
                     <label for="inputTitle" class="col-sm-2 control-label">文章标题：</label>
-                    <div class="col-sm-10">
+                    <div class="col-sm-8">
                         <input type="text" name="title" class="form-control title" id="inputTitle" value="文章标题文字">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputCover" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
+                        <!-- 预览用的img -->
                         <img src="images/pic06.jpg" class="article_cover">
+                        <!-- 选择图片的input标签 -->
                         <input name="cover" type="file" id="inputCover">
                     </div>
                 </div>
@@ -50,12 +58,18 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">发布时间：</label>
-                    <div class="col-sm-4">
+                    <!-- 引入的日期插件 -->
+                    <div class="jeinpbox col-sm-4">
+                        <input type="text" name="date" class="jeinput" id="testico" placeholder="YYYY-MM-DD">
+                        <div class="icons jebtns" onclick="jeDate('#testico',{zIndex:20999,trigger:false,format: 'YYYY-MM-DD'})">
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
-                    <div class="col-sm-10">
+                    <!-- wangEditor的html结构 -->
+                    <div id="editor" class="col-sm-8">
+                        <p>请输入你要发表的文章正文!</p>
                     </div>
                 </div>
                 <div class="form-group">
@@ -67,6 +81,109 @@
             </form>
         </div>
     </div>
+
+    <!-- 准备一个 文章类别 模板 -->
+    <script id="article_category_temp" type="text/html">
+        {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+
+    <script src="./libs/http.js"></script>
+    <script>
+        //入口函数
+        $(function () {
+            //一: 头像预览
+            $('#inputCover').on('change', function () {
+                var file1 = this.files[0];
+                var url1 = URL.createObjectURL(file1);
+                $('.article_cover').attr('src', url1);
+            });
+
+            //二:一进到发表文章页面,就应该显示所有的文章类别. 
+            $.ajax({
+                type: 'get',
+                url: BigNew.category_list,
+                success: function (backData) {
+                    //console.log(backData);
+                    if (backData.code == 200) {
+                        //通过模板引擎 渲染到下拉菜单中
+                        var resHtml = template('article_category_temp', backData);
+                        $('select.category').html(resHtml);
+                    }
+                }
+            });
+
+            //三: 日期插件
+            jeDate("#testico", {
+                isinitVal: true, //是否初始化时间，默认不初始化时间
+                zIndex:20999,  //弹出层的层级高度
+                format: "YYYY-MM-DD",
+                isTime: false,
+                minDate: "2014-09-19 00:00:00"
+            })
+
+            //四:富文本编辑器wangEditor
+            var E = window.wangEditor;
+            var editor = new E('#editor');
+            editor.create();
+
+
+            //------------------------------------
+            //发布文章为 已发布
+            $('.btn-release').on('click',function(e){
+                e.preventDefault();
+                //创建FormData对象
+                var fd = new FormData(document.querySelector('form'));
+                //检查一下form表单里面获取数据的标签有没有name属性,以及name属性的值是否和接口的键一致. 
+                //往formData对象中追加内容(富文本编辑器wangEditor获取到的正文,以及已发布)
+                fd.append('content',editor.txt.html());
+                fd.append('state','已发布');
+                //发送ajax请求,完成文章发布
+                $.ajax({
+                    type:'post',
+                    url:BigNew.article_publish,
+                    data:fd,
+                    contentType:false,
+                    processData:false,
+                    success:function(backData){
+                        if(backData.code == 200){
+                            alert('发表成功!');
+                            parent.$('ul.level02>li:eq(0)').click();
+                            window.location.href = './article_list.html';
+                        }
+                    }
+                });
+            })
+
+            //发布文章为  草稿
+            $('.btn-draft').on('click',function(e){
+                e.preventDefault();
+                //创建FormData对象
+                var fd = new FormData(document.querySelector('form'));
+                //检查一下form表单里面获取数据的标签有没有name属性,以及name属性的值是否和接口的键一致. 
+                //往formData对象中追加内容(富文本编辑器wangEditor获取到的正文,以及已发布)
+                fd.append('content',editor.txt.html());
+                //发送ajax请求,完成文章发布
+                $.ajax({
+                    type:'post',
+                    url:BigNew.article_publish,
+                    data:fd,
+                    contentType:false,
+                    processData:false,
+                    success:function(backData){
+                        if(backData.code == 200){
+                            alert('保存草稿成功!');
+                            parent.$('ul.level02>li:eq(0)').click();
+                            window.location.href = './article_list.html';
+                        }
+                    }
+                });
+            })
+
+
+        })
+    </script>
 </body>
 
 </html>

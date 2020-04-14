@@ -125,7 +125,11 @@
 
 
 
+
+
             //------------------------------------------------------------
+            var currentPage = 1; //当前页码
+
             //封装:发送ajax请求,根据条件获取对应的所有文章数据,封装成一个函数. 
             //myPage就是当前的页码
             //callback就是渲染数据完成后要做的事情. 
@@ -153,17 +157,22 @@
                                 $('#pagination').show().next('p').hide();
                                 //把获取回来的数据在调用callback的时候作为实参传递
                                 callback(backData);
-                            }else if(backData.data.data.length == 0){
+                            }
+                            //如果你当前页是1,并且发送ajax请求又没有文章数,
+                            //那就说明你这个文章分类 中确实没有文章. 
+                            else if(backData.data.data.length == 0 && currentPage == 1){
                                 //没有数据
                                 $('#pagination').hide().next('p').show();
+                            }
+                            else if(backData.data.totalPage == currentPage-1 && backData.data.data.length == 0) {
+                                currentPage -= 1;
+                                //重新的绘制分页结构
+                                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, currentPage);
                             }
                         }
                     }
                 });
             }
-
-
-
 
             //二:一进到页面,发送ajax请求,获取默认的文章类别/文章状态 下的所有文章. 
             getData(1, function (backData) {
@@ -177,6 +186,8 @@
                     last: '尾页',
                     //页码点击的回调函数事件
                     onPageClick: function (event, page) {
+                        currentPage = page; //给当前页码赋值
+
                         //console.log(page); //是当前点击的页码数,比如第5页
                         //重新发送ajax请求,把当前点击的这个页码传进去. 
                         getData(page, null); //调用我们自己封装的方法
@@ -187,12 +198,44 @@
             //三:点击筛选按钮,获取符合条件 的文章们,渲染到页面上. 
             $('#btnSearch').on('click', function (e) {
                 e.preventDefault(); //阻止默认的提交行为
+                //把当前页改成1
+                currentPage = 1;
                 //发送ajax请求
                 getData(1, function (backData) {
                     //点击筛选按钮,由于改变了筛选条件,所以筛选出来的数据总页码会发生改变. 
                     //所以要根据新的总页数, 来重新绘制 分页结构. 
                     $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
                 })
+            })
+
+
+            //四:删除文章
+            //给删除按钮设置点击事件(委托注册)
+            $('tbody').on('click','.delete',function(){
+                if(confirm('你确定要删除吗?')){
+                    //通过当前点击的删除按钮(a标签)的这个自定义属性(data-id)来获取当前要删除的文章id
+                    var articleId = $(this).attr('data-id');
+                    //发送ajax请求完成删除
+                    $.ajax({
+                        type:'post',
+                        url:BigNew.article_delete,
+                        data:{
+                            id:articleId
+                        },
+                        success:function(backData){
+                            console.log(backData);
+                            if(backData.code == 204){
+                                //删除成功,要重新加载数据. 
+                                //由于删除了数据,那总的页码就有可能减少
+                                //那就应该根据新的总页码 重新生成 分页结构
+                                getData(currentPage,function(backData){
+                                    //重绘分页结构
+                                    $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, currentPage);
+                                });
+                            }
+                        }
+                    });
+                }
             })
 
 

@@ -297,6 +297,15 @@
         {{/each}}
     </script>
 
+    <!-- 六:文章类别 模板 -->
+    <script id="category_temp" type="text/html">
+        {{each data v}}
+        <li>
+            <a href="./list.html?categoryId={{v.id}}">{{v.name}}</a>
+        </li>
+        {{/each}}
+    </script>
+
     <script>
         //入口函数
         $(function(){
@@ -375,6 +384,21 @@
                 }
             });
 
+            //六:文章类别
+            $.ajax({
+                type:'get',
+                url:'http://localhost:8080/api/v1/index/category',
+                success:function(backData){
+                    //console.log(backData);
+                    if(backData.code = 200){
+                        var resHtml = template('category_temp',backData);
+                        //设置竖着的 文章类别列表
+                        $('ul.level_two').html('<li class="up"></li>'+resHtml);
+                        //设置横着的 文章类别列表
+                        $('ul.left_menu').html(resHtml);
+                    }
+                }
+            });
         });
     </script>
 </body>

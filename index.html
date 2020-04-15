@@ -399,6 +399,21 @@
                     }
                 }
             });
+            
+            //七:文章搜索
+            //给搜索按钮设置一个点击事件
+            $('.search_btn').on('click',function(){
+                //获取用户输入的搜索关键词
+                var searchTxt = $('.search_txt').val().trim();
+                //非空判断
+                if(searchTxt == ""){
+                    alert('搜索内容不能为空!');
+                    return;
+                }
+                //跳转到list.html页面,把搜索的关键词带过去
+                window.location.href = './list.html?search='+searchTxt;
+            })
+        
         });
     </script>
 </body>

@@ -227,6 +227,92 @@
     </div>
     <!-- 导包template -->
     <script src="./js/template-web.js"></script>
+    <!-- 准备一个lit页的数据 模板 -->
+    <script id="list_temp" type="text/html">
+        {{each data.data v}}
+        <div class="common_news_list">
+            <a href="./article.html?id={{v.id}}" class="list_pic">
+                <img src="{{v.cover}}" alt="">
+            </a>
+            <h4><a href="./article.html?id={{v.id}}">{{v.title}}</a></h4>
+            <p>{{@ v.intro}}</p>
+            <div class="new_info">
+                <span>标签：{{v.category}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( {{v.read}}
+                    )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
+                <b>发布于 {{v.date}}</b>
+            </div>
+        </div>
+        {{/each}}
+    </script>
+
+    <script>
+        //入口函数
+        $(function () {
+            //一:要先判断是如何进到这个list页面的. 
+            var value = window.location.search; //可以获取到url中?和?后面的内容
+            var value1 = value.split('=')[0];
+            var value2 = value.split('=')[1];
+            console.log(value, value1, value2);
+            //判断
+            if (value == "") {
+                //如果你是直接输入网址list.html进来这个页面的,那就打回到首页
+                window.location.href = './index.html';
+            } else if (value1 == '?categoryId') {
+                //alert('说明是点击文章类别进来的');
+                $.ajax({
+                    type: 'get',
+                    url: 'http://localhost:8080/api/v1/index/search',
+                    data: {
+                        type: value2 //value2就是文章类型id
+                    },
+                    success: function (backData) {
+                        //console.log(backData);
+                        if (backData.code == 200) {
+                            //判断返回的有么有文章
+                            if(backData.data.data.length > 0){
+                                //通过模板引擎的方式渲染
+                                var resHtml = template('list_temp',backData);
+                                $('div.left_con.setfr').html('<div class="list_title"><h3>'+backData.data.data[0].category+'</h3></div>'+resHtml);
+                            }else {
+                                //该文章类型里面没有数据
+                                $('div.left_con.setfr').html('<div class="list_title"><h3>没有数据</h3></div>');
+                            }
+                        }
+                    }
+                });
+            } else {
+                //alert('说明是点击搜索按钮进来的');
+                //把搜索关键词 给解码
+                value2 = decodeURI(value2);
+                console.log(value2);
+                //发送ajax请求,获取该搜索关键字 获取到的所有文章
+                $.ajax({
+                    type:'get',
+                    url: 'http://localhost:8080/api/v1/index/search',
+                    data:{
+                        key:value2
+                    },
+                    success:function(backData){
+                        //console.log(backData);
+                        if (backData.code == 200) {
+                            //判断返回的有么有文章
+                            if(backData.data.data.length > 0){
+                                //通过模板引擎的方式渲染
+                                var resHtml = template('list_temp',backData);
+                                $('div.left_con.setfr').html('<div class="list_title"><h3>搜索词:'+value2+'</h3></div>'+resHtml);
+                            }else {
+                                //该文章类型里面没有数据
+                                $('div.left_con.setfr').html('<div class="list_title"><h3>没有数据</h3></div>');
+                            }
+                        }
+                    }
+                });
+                
+            }
+
+
+        });
+    </script>
 </body>
 
 </html>

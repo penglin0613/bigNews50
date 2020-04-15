@@ -227,6 +227,40 @@
     <script src="./js/template-web.js"></script>
     <!-- 引入jq文件 -->
     <script src="./js/jquery-1.12.4.min.js"></script>
+
+    <!-- 一:最新资讯 模板 -->
+    <script id="latest_temp" type="text/html">
+        {{each data v}}
+        <div class="common_news_list">
+            <a href="./article.html?id={{v.id}}" class="list_pic"><img src="{{v.cover}}" alt=""></a>
+            <h4><a href="./article.html?id={{v.id}}">{{v.title}} </a></h4>
+            <p>{{@ v.intro}}</p>
+            <div class="new_info">
+                <span>标签：{{v.category}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( {{v.read}}
+                    )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
+                <b>发布于 {{v.date}}</b>
+            </div>
+        </div>
+        {{/each}}
+    </script>
+
+    <script>
+        //入口函数
+        $(function(){
+            //一:最新资讯(也就是最新的已发布的文章5条)
+            $.ajax({
+                type:'get',
+                url:'http://localhost:8080/api/v1/index/latest',
+                success:function(backData){
+                    //console.log(backData);
+                    if(backData.code == 200){
+                      var resHtml = template('latest_temp',backData);
+                      $('.common_news').html(resHtml);
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

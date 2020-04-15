@@ -258,6 +258,27 @@
         {{/each}}
     </script>
 
+    <!-- 三:一周热门排行 模板 -->
+    <script id="rankList_temp" type="text/html">
+        {{each data v}}
+            {{if $index == 0}}
+            <li>
+                <span class="first">1</span>
+            {{else if $index == 1}}
+            <li>
+                <span class="second">2</span>  
+            {{else if $index == 2}} 
+            <li>
+                <span class="third">3</span>   
+            {{else}}    
+            <li>
+                <span>{{$index+1}}</span> 
+            {{/if}}    
+                <a href="./article.html?id={{v.id}}">{{v.title}}</a>
+            </li>
+        {{/each}}
+    </script>
+
     <script>
         //入口函数
         $(function(){
@@ -286,6 +307,29 @@
                     }
                 }            
             });
+            
+            //三:一周热门排行
+            $.ajax({
+                type:'get',
+                url:'http://localhost:8080/api/v1/index/rank',
+                success:function(backData){
+                    //console.log(backData);
+                    if(backData.code == 200){
+                        //第一种处理办法: 直接修改每一li标签里面的a标签的文本和href的值
+                        // for(var i = 0; i<backData.data.length; i++){
+                        //     //backData.data[i].id;
+                        //     //backData.data[i].title
+                        //     $('.hotrank_list>li').eq(i).children('a').text(backData.data[i].title);
+                        //     $('.hotrank_list>li').eq(i).children('a').attr('href','./article.html?id='+backData.data[i].id);
+                        // }
+
+                        //第二种处理方式: 模板引擎
+                        var reshtml = template('rankList_temp',backData);
+                        $('.hotrank_list').html(reshtml);
+                    }
+                }
+            });
+        
         });
     </script>
 </body>

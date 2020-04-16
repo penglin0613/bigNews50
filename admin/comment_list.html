@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="css/iconfont.css">
   <link rel="stylesheet" href="css/main.css">
   <script src="./libs/jquery-1.12.4.min.js"></script>
+  <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+  <!-- 引入分页插件twbs-pagination插件的js -->
+  <script src="./libs/jquery.twbsPagination.js"></script>
   <script src="./libs/template-web.js"></script>
 </head>
 
@@ -142,19 +145,7 @@
         </tbody>
       </table>
       <div class="row text-center">
-        <ul class="pagination pagination-sm">
-          <li class="page-item first disabled"><a href="#" class="page-link">首页</a></li>
-          <li class="page-item prev disabled"><a href="#" class="page-link">上一页</a></li>
-          <li class="page-item active"><a href="#" class="page-link">1</a></li>
-          <li class="page-item"><a href="#" class="page-link">2</a></li>
-          <li class="page-item"><a href="#" class="page-link">3</a></li>
-          <li class="page-item"><a href="#" class="page-link">4</a></li>
-          <li class="page-item"><a href="#" class="page-link">5</a></li>
-          <li class="page-item"><a href="#" class="page-link">6</a></li>
-          <li class="page-item"><a href="#" class="page-link">7</a></li>
-          <li class="page-item next"><a href="#" class="page-link">下一页</a></li>
-          <li class="page-item last"><a href="#" class="page-link">尾页</a></li>
-        </ul>
+        <!-- 分页结构 -->
         <ul id="pagination" class="pagination-sm"></ul>
       </div>
 
@@ -164,49 +155,162 @@
   <!-- 准备一个评论列表的 模板 -->
   <script id="commentList_temp" type="text/html">
     {{each data.data v}}
-      {{if v.state == "待审核"}}
-        <tr class="danger">
+    {{if v.state == "待审核"}}
+    <tr class="danger">
       {{else}}
-        <tr>
-      {{/if}}    
-          <td>{{v.author}}</td>
-          <td>{{v.content}}</td>
-          <td>{{v.title}}</td>
-          <td>{{v.date}} {{v.time}}</td>
-          <td>{{v.state}}</td>
-          <td class="text-center">
-            {{if v.state == "待审核"}}
-            <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-info btn-xs">批准</a>
-            {{else if v.state == "已通过"}}
-            <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-warning btn-xs">拒绝</a>
-            {{/if}}
-            <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-danger btn-xs">删除</a>
-          </td>
-        </tr>
+    <tr>
+      {{/if}}
+      <td>{{v.author}}</td>
+      <td>{{v.content}}</td>
+      <td>{{v.title}}</td>
+      <td>{{v.date}} {{v.time}}</td>
+      <td>{{v.state}}</td>
+      <td class="text-center">
+        {{if v.state == "待审核"}}
+        <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-info btn-xs btn-pizhun">批准</a>
+        {{else if v.state == "已通过"}}
+        <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-warning btn-xs btn-jujue">拒绝</a>
+        {{/if}}
+        <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-danger btn-xs btn-delete">删除</a>
+      </td>
+    </tr>
     {{/each}}
   </script>
 
   <script src="./libs/http.js"></script>
   <script>
     //入口函数
-    $(function(){
-      //一: 一进到评论管理页面,就要发送ajax请求,获取到评论数据
-      $.ajax({
-        type:'get',
-        url:BigNew.comment_list,
-        data:{
-          page:1,
-          perpage:6
-        },
-        success:function(backData){
-          //console.log(backData);
-          if(backData.code == 200){
-            //通过模板引擎的方式渲染到页面上. 
-            var resHtml = template('commentList_temp',backData);
-            $('tbody').html(resHtml);
+    $(function () {
+
+      //发送ajax请求,获取评论数据封装成一个函数
+      function getData(mypage, callback) {
+        $.ajax({
+          type: 'get',
+          url: BigNew.comment_list,
+          data: {
+            page: mypage,
+            perpage: 3
+          },
+          success: function (backData) {
+            console.log(backData);
+            if (backData.code == 200) {
+              //通过模板引擎的方式渲染到页面上. 
+              var resHtml = template('commentList_temp', backData);
+              $('tbody').html(resHtml);
+
+              //判断回调函数是否为null,不为null就执行
+              if (callback != null && backData.data.data.length != 0) {
+                callback(backData);
+              } else if (backData.data.data.length == 0 && backData.data.totalPage == currentPage - 1) {
+                //进到这里来了,说明当前删除的是最后一页的最后一条数据. 
+                currentPage -= 1;
+                //根据总的页数重绘分页插件.
+                //第一个参数是事件名字, 
+                //第二个参数是改变后的总的页码
+                //第三个参数是当前要显示的页码 
+                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, currentPage);
+              }
+            }
           }
-        }
+        });
+      }
+
+      //声明一个变量用来表示当前页
+      var currentPage = 1;
+
+      //一进到评论列表页,就要发送ajax请求获取数据
+      getData(1, function (backData) {
+        //分页结构
+        $('#pagination').twbsPagination({
+          totalPages: backData.data.totalPage, //总页数
+          visiblePages: 5, //最大的可见页数
+          first: '首页',
+          prev: '上一页',
+          next: '下一页',
+          last: '尾页',
+          //页码点击的回调函数事件
+          onPageClick: function (event, page) {
+            currentPage = page; //给当前页变量赋值 为 当前点击的这个页码
+
+            //又要重新的去发送ajax请求  
+            getData(page, null);
+          }
+        });
       });
+
+
+      //二: 批准
+      $('tbody').on('click', '.btn-pizhun', function () {
+        var commentId = $(this).attr('data-id');
+        //发送ajax请求,完成批准
+        $.ajax({
+          type: 'post',
+          url: BigNew.comment_pass,
+          data: {
+            id: commentId
+          },
+          success: function (backData) {
+            //console.log(backData);
+            if (backData.code == 200) {
+              alert('审核通过');
+              //重新加载数据
+              getData(currentPage, null);
+            }
+          }
+        });
+      })
+
+      //三: 拒绝
+      $('tbody').on('click', '.btn-jujue', function () {
+        var commentId = $(this).attr('data-id');
+        //发送ajax请求,完成拒绝
+        $.ajax({
+          type: 'post',
+          url: BigNew.comment_reject,
+          data: {
+            id: commentId
+          },
+          success: function (backData) {
+            //console.log(backData);
+            if (backData.code == 200) {
+              alert('已拒绝');
+              //重新加载数据
+              getData(currentPage, null);
+            }
+          }
+        });
+      })
+
+      //四: 删除
+      $('tbody').on('click', '.btn-delete', function () {
+        if (confirm('你确定要删除吗?')) {
+          var commentId = $(this).attr('data-id');
+          //发送ajax请求,完成删除
+          $.ajax({
+            type: 'post',
+            url: BigNew.comment_delete,
+            data: {
+              id: commentId
+            },
+            success: function (backData) {
+              //console.log(backData);
+              if (backData.code == 200) {
+                alert('已删除');
+                //重新加载数据
+                getData(currentPage, function (backData) {
+                  //因为删除评论,有可能会改变总的页码, 所以重绘分页结构
+                  //根据总的页数重绘分页插件.
+                  //第一个参数是事件名字, 
+                  //第二个参数是改变后的总的页码
+                  //第三个参数是当前要显示的页码 
+                  $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage,
+                    currentPage);
+                });
+              }
+            }
+          });
+        }
+      })
 
     })
   </script>

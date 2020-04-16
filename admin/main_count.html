@@ -60,18 +60,29 @@
     </div>
 
 
-    <!-- 折线图 -->
     <script>
-        var json = '{"code":200,"msg":"获取成功","date":[{"date":"2019-05-20","count":23},{"date":"2019-05-21","count":19},{"date":"2019-05-22","count":29},{"date":"2019-05-23","count":24},{"date":"2019-05-24","count":28},{"date":"2019-05-25","count":28},{"date":"2019-05-26","count":19},{"date":"2019-05-27","count":25},{"date":"2019-05-28","count":25}]}';
-        var obj = JSON.parse(json);
-        loadEchars(obj);
+        //发送ajax请求,获取大事件中echarts图表(折线图)使用的真实的数据
+        $.ajax({
+            type: 'get',
+            url: 'http://localhost:8080/api/v1/admin/data/article',
+            //后台所有的接口访问都要传递token
+            //设置请求头(键,值)
+            // headers: {
+            //     'Authorization': localStorage.getItem('token')
+            // },
+            success:function(backData){
+                console.log(backData);
+                //数据的处理
+                loadEchars(backData);
+            }
+        });
 
         function loadEchars(obj) {
             // 基于准备好的dom，初始化echarts实例
             var myChart = echarts.init(document.getElementById('curve_show'));
 
-            var data = [];
-            var date = [];
+            var data = []; //所有的数值
+            var date = []; //所有的日期
             for (var i = 0; i < obj.date.length; i++) {
                 data.push(obj.date[i].count);
                 date.push(obj.date[i].date);
@@ -81,7 +92,10 @@
                 tooltip: {
                     trigger: 'axis',
                     position: function (pt) {
-                        return [pt[0], '10%'];
+                        // pt是表示鼠标当前位置
+                        // pt[0]表示是鼠标的x坐标
+                        // pt[1]表示是鼠标的y坐标
+                        return [pt[0] + 10, pt[1] - 10];
                     }
                 },
                 title: {
@@ -93,7 +107,13 @@
                     name: '日',
                     type: 'category',
                     boundaryGap: false,
-                    data: date
+                    // x轴的数据就用到了日期
+                    data: date,
+                    axisLabel: {
+                        show: true,
+                        inside: false,
+                        // padding:[0,0,0,65]
+                    }
                 },
                 legend: {
                     data: ['新增文章'],
@@ -105,8 +125,12 @@
                         dataZoom: {
                             yAxisIndex: 'none'
                         },
-                        dataView: { readOnly: false },
-                        magicType: { type: ['line', 'bar'] },
+                        dataView: {
+                            readOnly: false
+                        },
+                        magicType: {
+                            type: ['line', 'bar']
+                        },
                         restore: {},
                         saveAsImage: {}
                     },
@@ -114,20 +138,21 @@
                 },
                 yAxis: {
                     type: 'value',
-                    boundaryGap: [0, '100%']
+                    boundaryGap: [0, '100%'],
+                    // y轴显示的最大值
+                    max:40
                 },
-                series: [
-                    {
-                        name: '新增文章',
-                        type: 'line',
-                        smooth: true,
-                        // symbol: 'none',
-                        sampling: 'average',
-                        itemStyle: {
-                            color: '#f80'
-                        },
-                        areaStyle: {
-                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                series: [{
+                    name: '新增文章',
+                    type: 'line',
+                    smooth: true,
+                    // symbol: 'none',
+                    sampling: 'average',
+                    itemStyle: {
+                        color: '#f80'
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
                                 offset: 0,
                                 color: 'rgba(255,136,0,0.39)'
                             }, {
@@ -137,16 +162,21 @@
                             {
                                 offset: 1,
                                 color: 'rgba(255,222,0,0.00)'
-                            }])
-                        },
-                        data: data
-                    }
-                ],
+                            }
+                        ])
+                    },
+                    data: data
+                }],
             }
             // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
         }
     </script>
+
+
+
+
+
 
     <!-- 环形图 -->
     <script>
@@ -197,6 +227,9 @@
         // 使用刚指定的配置项和数据显示图表。
         myChart1.setOption(option1);
     </script>
+
+
+
     <!-- 柱状图 -->
     <script>
         // 基于准备好的dom，初始化echarts实例

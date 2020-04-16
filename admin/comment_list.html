@@ -160,6 +160,56 @@
 
     </div>
   </div>
+
+  <!-- 准备一个评论列表的 模板 -->
+  <script id="commentList_temp" type="text/html">
+    {{each data.data v}}
+      {{if v.state == "待审核"}}
+        <tr class="danger">
+      {{else}}
+        <tr>
+      {{/if}}    
+          <td>{{v.author}}</td>
+          <td>{{v.content}}</td>
+          <td>{{v.title}}</td>
+          <td>{{v.date}} {{v.time}}</td>
+          <td>{{v.state}}</td>
+          <td class="text-center">
+            {{if v.state == "待审核"}}
+            <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-info btn-xs">批准</a>
+            {{else if v.state == "已通过"}}
+            <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-warning btn-xs">拒绝</a>
+            {{/if}}
+            <a href="javascript:void(0);;" data-id={{v.id}} class="btn btn-danger btn-xs">删除</a>
+          </td>
+        </tr>
+    {{/each}}
+  </script>
+
+  <script src="./libs/http.js"></script>
+  <script>
+    //入口函数
+    $(function(){
+      //一: 一进到评论管理页面,就要发送ajax请求,获取到评论数据
+      $.ajax({
+        type:'get',
+        url:BigNew.comment_list,
+        data:{
+          page:1,
+          perpage:6
+        },
+        success:function(backData){
+          //console.log(backData);
+          if(backData.code == 200){
+            //通过模板引擎的方式渲染到页面上. 
+            var resHtml = template('commentList_temp',backData);
+            $('tbody').html(resHtml);
+          }
+        }
+      });
+
+    })
+  </script>
 </body>
 
 </html>
